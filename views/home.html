@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,minimum-scale=1">
+		<title>Project Wagner</title>
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+        <!-- include the stylesheet file -->
+        <link href="/css/style.css" rel="stylesheet" type="text/css">
+	</head>
+	<body>
+        <nav>
+            <div class="navTitle">Project Wagner</div>
+            <button class="btn btn-logout" onclick="logout()">Logout</button>
+        </nav>
+		<div class="home-div">
+            <div class="homeContent">
+                <h1 id="homeTitle"></h1>
+                <div id="userBalance"></div>
+                <h3 class="sectionHeading">Connections</h3>
+                <div>
+                    <table id="connectionsTable">
+                    </table>
+                </div>
+                <div class="sectionAdd">
+                    <form>
+                        <input type="text" id="connection_account" placeholder="Account Number">
+                        <input type="submit" class="btn btn-add" id="submitConnection" value="Add Connection">
+                    </form>
+                </div>
+
+                <h3 class="sectionHeading">Transactions</h3>
+                <div>
+                    <table id="transactionsTable">
+                    </table>
+                </div>
+                <div class="sectionAdd">
+                    <select id="selectReceiver"></select>
+                    <input type="text" id="transaction_amount" placeholder="Amount">
+                    <input type="submit" class="btn btn-add" id="submitTransaction" value="Add Transaction">
+                </div>
+                <h3 id="totalCommissions"></h3>
+            </div>
+		</div>
+	</body>
+    <script>
+        var token = localStorage.getItem('token');
+        if(!token) {
+            window.location.href = "/";
+        }
+        var user = JSON.parse(localStorage.getItem('user'));
+        var account_number = localStorage.getItem('account_number');
+        var balance = localStorage.getItem('balance');
+        const homeTitle = document.getElementById('homeTitle')
+        const userBalance = document.getElementById('userBalance')
+        homeTitle.innerHTML = "Hola " + user.first_name + ' ' + user.last_name + " (" + account_number + ")"
+        userBalance.innerHTML = '<h3>Balance: </h3> <h2>' + parseInt(balance).toFixed(2) + '$</h2>'
+
+        getConnections(account_number)
+        getTransactions(account_number)
+
+        if(user.is_admin) {
+            getBankCommissions()
+        }
+
+        const connectionBtn = document.getElementById('submitConnection')
+        connectionBtn.addEventListener('click', addConnection)
+
+        const transactionBtn = document.getElementById('submitTransaction')
+        transactionBtn.addEventListener('click', addTransaction)
+
+        async function getConnections(account_number) {
+            const selectReceiver = document.getElementById('selectReceiver')
+            const baseUrl = "http://localhost:3000/"
+            var requestOptions = {
+                headers: !token ? {} : { 'Authorization': `Bearer ${token}` },
+                method: 'GET'
+            };
+            const res = await fetch(baseUrl + 'connection/user/' + account_number, requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        // console.log(data)
+                        let text = "";
+                        text += "<tr><th>User</th><th>Status</th><th>Actions</th></tr>"
+
+                        for (let i = 0; i < data.connections.length; i++) {
+                            if(data.connections[i].sender == localStorage.getItem('account_number')) {
+                                text += "<tr><td>" + data.connections[i].receiver + "</td>";
+                                text += "<td>" + data.connections[i].status + "</td>";
+                                if(data.connections[i].status == "Pending") {
+                                    text += "<td><input type='submit' class='btn btn-add' id='declineConnection" + data.connections[i]._id + "' value='Cancel'></td></tr>";
+                                } else if(data.connections[i].status == "Accepted") {
+                                    text += "<td><input type='submit' class='btn btn-add' id='declineConnection" + data.connections[i]._id + "' value='Remove'></td></tr>";
+                                    var opt = document.createElement("option")
+                                    opt.value = data.connections[i].receiver;
+                                    opt.innerHTML = data.connections[i].receiver;
+                                    selectReceiver.appendChild(opt)
+                                } else {
+                                    text += "<td></td></tr>"
+                                }
+                                document.getElementById("connectionsTable").innerHTML = text;
+                            } else if (data.connections[i].receiver == localStorage.getItem('account_number')) {
+                                text += "<tr><td>" + data.connections[i].sender + "</td>";
+                                text += "<td>" + data.connections[i].status + "</td>";
+                                if(data.connections[i].status == "Pending") {
+                                    text += "<td><input type='submit' class='btn btn-add' id='declineConnection" + data.connections[i]._id + "' value='Decline'><input type='submit' class='btn btn-add' id='acceptConnection" + data.connections[i]._id + "' value='Accept'></td></tr>";
+                                } else if(data.connections[i].status == "Accepted") {
+                                    text += "<td><input type='submit' class='btn btn-add' id='declineConnection" + data.connections[i]._id + "' value='Remove'></td></tr>";
+                                    var opt = document.createElement("option")
+                                    opt.value = data.connections[i].sender;
+                                    opt.innerHTML = data.connections[i].sender;
+                                    selectReceiver.appendChild(opt)
+                                } else {
+                                    text += "<td></td></tr>"
+                                }
+                                document.getElementById("connectionsTable").innerHTML = text;
+                            }
+                        }
+                        for (let i = 0; i < data.connections.length; i++) {
+                            if(data.connections[i].status == "Declined") {
+                                const declineConnectionBtn = document.getElementById('declineConnection' + data.connections[i]._id)
+                                declineConnectionBtn.addEventListener('click', declineConnection)
+                            } else if(data.connections[i].status == "Pending" && data.connections[i].receiver == localStorage.getItem('account_number')) {
+                                console.log(data.connections[i]._id)
+                                const acceptConnectionBtn = document.getElementById('acceptConnection' + data.connections[i]._id)
+                                acceptConnectionBtn.addEventListener('click', acceptConnection)
+                            }
+                        }
+                    });
+                } else {
+                    alert('Error en el servidor');
+                    window.location.href = "/";
+                }
+            })
+            .catch(error => console.log('error', error));            
+        }
+
+        async function addConnection(e) {
+            e.preventDefault()
+            const accountInput = document.getElementById('connection_account')
+            var account_number = localStorage.getItem('account_number');
+
+            var formdata = {
+                sender: account_number,
+                receiver: accountInput.value,
+                status: "Pending"
+            }
+            var requestOptions = {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                method: 'POST',
+                body: JSON.stringify(formdata)
+            };
+
+            const res = await fetch('http://localhost:3000/connection/account', requestOptions)
+            .then(response => {
+                if (response.status === 201) {
+                    response.json().then(data => {
+                        window.location.href = "http://localhost:3000/home";
+                    });
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+
+        async function declineConnection(e) {
+            e.preventDefault()
+            console.log(e.target.id.substring(17))
+            // const connection = document.getElementById('connectionId')
+            const connection = e.target.id.substring(17)
+
+            var formdata = {
+                status: "Declined"
+            }
+            var requestOptions = {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                method: 'PUT',
+                body: JSON.stringify(formdata)
+            };
+
+            const res = await fetch('http://localhost:3000/connection/update/' + connection, requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        console.log(data)
+                        window.location.href = "http://localhost:3000/home";
+                    });
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+        
+        async function acceptConnection(e) {
+            e.preventDefault()
+            // console.log(e.target.id.substring(16))
+            const connection = e.target.id.substring(16)
+
+            var formdata = {
+                status: "Accepted"
+            }
+            var requestOptions = {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                method: 'PUT',
+                body: JSON.stringify(formdata)
+            };
+
+            const res = await fetch('http://localhost:3000/connection/update/' + connection, requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        console.log(data)
+                        window.location.href = "http://localhost:3000/home";
+                    });
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+        
+        async function getTransactions(account_number) {
+            const baseUrl = "http://localhost:3000/"
+            var requestOptions = {
+                headers: !token ? {} : { 'Authorization': `Bearer ${token}` },
+                method: 'GET'
+            };       
+            const res = await fetch(baseUrl + 'transaction/user/' + account_number, requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+
+                        // Creamos la tabla de transacciones con los datos de bbdd
+                        let text = "";
+                        text += "<tr><th>S/R</th><th>User</th><th>Amount</th><th>Commission</th><th>Status</th><th>Actions</th></tr>"
+                        for (let i = 0; i < data.transactions.length; i++) {
+                            if(data.transactions[i].sender == localStorage.getItem('account_number')) {
+                                text += "<tr><td><div class='transactionSent'>Sent</div></td>";
+                                text += "<td>" + data.transactions[i].receiver + "</td>";
+                                text += "<td><div class='amountSent'>-" + data.transactions[i].amount.toFixed(2) + "$</div></td>";
+                                text += "<td>" + data.transactions[i].commission * 100 + "%</td>";
+                                text += "<td>" + data.transactions[i].status + "</td>";
+                                
+                                // Comprobamos el tiempo transcurrido para ver si podemos cancelar la transacción
+                                var createdAt = new Date(data.transactions[i].createdAt);
+                                var millis = Date.now() - createdAt.getTime();
+                                if(millis < 60000 && data.transactions[i].is_undone == false) {
+                                    text += "<td><input type='submit' class='btn btn-add' id='cancelTransaction" + data.transactions[i]._id + "' value='Cancel'></td></tr>";
+                                } else {
+                                    text += "<td></td></tr>";
+                                }
+                                document.getElementById("transactionsTable").innerHTML = text;
+                            } else if (data.transactions[i].receiver == localStorage.getItem('account_number')) {
+                                text += "<tr><td><div class='transactionReceived'>Received</div></td>";
+                                text += "<td>" + data.transactions[i].sender + "</td>";
+                                text += "<td><div class='amountReceived'>+" + data.transactions[i].amount.toFixed(2) + "$</div></td>";
+                                text += "<td>" + data.transactions[i].commission * 100 + "%</td>";
+                                text += "<td>" + data.transactions[i].status + "</td>";
+                                text += "<td></td></tr>";
+                             document.getElementById("transactionsTable").innerHTML = text;
+                            }
+                        }
+                        
+                        for (let i = 0; i < data.transactions.length; i++) {
+                            var createdAt = new Date(data.transactions[i].createdAt);
+                            var millis = Date.now() - createdAt.getTime();
+                            if(millis < 60000) {
+                                const cancelTransactionBtn = document.getElementById('cancelTransaction' + data.transactions[i]._id)
+                                cancelTransactionBtn.addEventListener('click', cancelTransaction)
+                            }
+                        }
+                    });
+                } else {
+                    alert('Error en el servidor');
+                    window.location.href = "/";
+                }
+            })
+            .catch(error => console.log('error', error));            
+        }
+
+        async function addTransaction(e) {
+            e.preventDefault()
+            var balance = parseInt(localStorage.getItem('balance'))
+            const accountInput = document.getElementById('selectReceiver')
+            const amountInput = document.getElementById('transaction_amount')
+            var account_number = parseInt(localStorage.getItem('account_number'));
+            var commission = 0.01
+            if(balance == 0) {
+                alert("Tu saldo es 0.")
+                return
+            } else if(parseInt(balance) < parseInt(amountInput.value)) {
+                alert("Tu saldo no es suficiente para hacer esta transferencia.")
+                return
+            }
+
+            if(amountInput.value > 1000) {
+                commission = 0.005;
+            }
+            var formdata = {
+                sender: account_number,
+                receiver: parseInt(accountInput.value),
+                amount: parseInt(amountInput.value),
+                commission: commission,
+                status: "Done"
+            }
+            // console.log(formdata)
+            var requestOptions = {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                method: 'POST',
+                body: JSON.stringify(formdata)
+            };
+
+            const res = await fetch('http://localhost:3000/transaction/account', requestOptions)
+            .then(response => {
+                if (response.status === 201) {
+                    response.json().then(data => {
+                        // console.log(data)
+                        // console.log("Dinero en transferencia " + amountInput.value)
+                        // console.log("Sender " + account_number)
+                        // console.log("Receiver " + accountInput.value)
+                        updateSenderBalance(amountInput.value, account_number, false)
+                        updateReceiverBalance(amountInput.value, accountInput.value, true)
+                    });
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+
+        async function cancelTransaction(e) {
+            e.preventDefault()
+            console.log(e.target.id.substring(17))
+            const transaction = e.target.id.substring(17)
+
+            var formdata = {
+                status: "Undone"
+            }
+            var requestOptions = {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                method: 'PUT',
+                body: JSON.stringify(formdata)
+            };
+
+            const res = await fetch('http://localhost:3000/transaction/update/' + transaction, requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(async function (data) {
+                        console.log(data)
+                        updateSenderBalance(data.transaction.amount, data.transaction.receiver, true)
+                        updateReceiverBalance(data.transaction.amount, data.transaction.sender, false)
+                        var formdata = {
+                            sender: data.transaction.receiver,
+                            receiver: data.transaction.sender,
+                            amount: data.transaction.amount,
+                            commission: data.transaction.commission,
+                            status: "Done",
+                            is_undone: true
+                        }
+                        var requestOptions = {
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                            method: 'POST',
+                            body: JSON.stringify(formdata)
+                        };
+                        const res = fetch('http://localhost:3000/transaction/account/', requestOptions)
+                        .then(response => {
+                            if (response.status === 201) {
+                                response.json().then(data => {
+                                    console.log(data)
+                                });
+                            } else {
+                                alert('Error en el servidor');
+                            }
+                        })
+                        .catch(error => console.log('error', error));
+                    });
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+        
+        async function updateSenderBalance(amount, account, is_undone) {
+            var requestOptions = {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                method: 'GET',
+            };
+            const resUser = await fetch('http://localhost:3000/user/user/' + account, requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(async function (data) {
+                        var newBalance = parseInt(data.user.balance) - parseInt(amount)
+                        var formdata = {
+                            balance: newBalance
+                        }
+                        console.log(newBalance)
+                        if(!is_undone) {
+                            localStorage.setItem('balance', newBalance)
+                        }
+                        var requestOptions = {
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                            method: 'PUT',
+                            body: JSON.stringify(formdata)
+                        };
+
+                        const res = fetch('http://localhost:3000/user/update/' + account, requestOptions)
+                        .then(response => {
+                            if (response.status === 200) {
+                                response.json().then(data => {
+                                    console.log(data)
+                                });
+                            } else {
+                                alert('Error en el servidor');
+                            }
+                        })
+                        .catch(error => console.log('error', error));
+                    });
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+        }
+
+        async function updateReceiverBalance(amount, account, is_undone) {
+            var requestOptions = {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                method: 'GET',
+            };
+            const resUser = await fetch('http://localhost:3000/user/user/' + account, requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(async function (data) {
+                        var newBalance = parseInt(data.user.balance) + parseInt(amount)
+                        var formdata = {
+                            balance: newBalance
+                        }
+                        var requestOptions = {
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', },
+                            method: 'PUT',
+                            body: JSON.stringify(formdata)
+                        };
+                        if(!is_undone) {
+                            localStorage.setItem('balance', newBalance)
+                        }
+                        const res = await fetch('http://localhost:3000/user/update/' + account, requestOptions)
+                        .then(response => {
+                            if (response.status === 200) {
+                                response.json().then(data => {
+                                    console.log(data)
+                                    window.location.href = "http://localhost:3000/home";
+                                });
+                            } else {
+                                alert('Error en el servidor');
+                            }
+                        })
+                        .catch(error => console.log('error', error));
+                    });
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+        }
+        
+        async function getBankCommissions(account_number) {
+            const baseUrl = "http://localhost:3000/"
+            var requestOptions = {
+                headers: !token ? {} : { 'Authorization': `Bearer ${token}` },
+                method: 'GET'
+            };       
+            const res = await fetch(baseUrl + 'transaction/commissions', requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        // console.log(data)
+                        var totalCommissions = document.getElementById('totalCommissions')
+                        totalCommissions.innerHTML = "Ganacias del banco por comisiones: " + data.transactions[0].commission + "$"
+                    });
+                } else {
+                    alert('Error en el servidor');
+                    window.location.href = "/";
+                }
+            })
+            .catch(error => console.log('error', error));            
+        }
+
+        function logout() {
+            localStorage.removeItem('user')
+            localStorage.removeItem('token')
+            localStorage.removeItem('account_number')
+            window.location.href = "/";
+        }
+    </script>
+</html>

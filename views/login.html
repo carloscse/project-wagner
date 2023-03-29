@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <title>Project Wagner</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+    <!-- include the stylesheet file -->
+    <link href="/css/style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body class="bodyLogin">
+    <div class="wrapper">
+        <div class="title-text">
+            <div class="title login">
+                Login Form
+            </div>
+            <div class="title signup">
+                Signup Form
+            </div>
+        </div>
+        <div class="form-container">
+            <div class="slide-controls">
+                <input type="radio" name="slide" id="login" checked>
+                <input type="radio" name="slide" id="signup">
+                <label for="login" class="slide login">Login</label>
+                <label for="signup" class="slide signup">Signup</label>
+                <div class="slider-tab"></div>
+            </div>
+            <div class="form-inner">
+                <form action="login" method="post" class="login">
+                    <div id="registerMsg"></div>
+                    <div class="field">
+                        <input type="text" name="account_number" placeholder="Account Number" id="account_number" required>
+                    </div>
+                    <div class="field">
+                        <input type="password" name="password" placeholder="Password" id="password" required>
+                    </div>
+                    <!-- <div class="pass-link">
+                        <a href="#">Forgot password?</a>
+                    </div> -->
+                    <div class="field btn">
+                        <div class="btn-layer"></div>
+                        <input type="submit" id="submitLogin" value="Login">
+                    </div>
+                    <!-- <div class="signup-link">
+                        Not a member? <a href="">Signup now</a>
+                    </div> -->
+                </form>
+                <form action="register" method="post" class="signup">
+                    <div class="field">
+                        <input type="text" id="first_name" placeholder="First Name" required>
+                    </div>
+                    <div class="field">
+                        <input type="text" id="last_name" placeholder="Last Name" required>
+                    </div>
+                    <div class="field">
+                        <input type="number" id="age" placeholder="Age" required>
+                    </div>
+                    <div class="field">
+                        <input type="number" id="balance" placeholder="Balance" required>
+                    </div>
+                    <div class="field btn">
+                        <div class="btn-layer"></div>
+                        <input type="submit" id="submitRegister" value="Signup">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        const submitBtn = document.getElementById('submitLogin')
+        submitBtn.addEventListener('click', login)
+
+        const submitRegister = document.getElementById('submitRegister')
+        submitRegister.addEventListener('click', register)
+
+        async function login(e) {
+            e.preventDefault()
+            const accountInput = document.getElementById('account_number')
+            const balanceInput = document.getElementById('balance')
+            const passInput = document.getElementById('password')
+
+            var formdata = {
+                account_number: accountInput.value,
+                password: passInput.value
+            }
+            var requestOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                body: JSON.stringify(formdata)
+            };
+
+            const res = await fetch('http://localhost:3000/login', requestOptions)
+            .then(response => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        localStorage.setItem('account_number', accountInput.value);
+                        localStorage.setItem('balance', data.user.balance);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        localStorage.setItem('token', data.token);
+                        window.location.href = "http://localhost:3000/home";
+                    });
+                } else if (response.status === 401) {
+                    window.location.href = "/";
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+        async function register(e) {
+            e.preventDefault()
+            const firstNameInput = document.getElementById('first_name')
+            const lastNameInput = document.getElementById('last_name')
+            const ageInput = document.getElementById('age')
+            const balanceInput = document.getElementById('balance')
+
+            var formdata = {
+                first_name: firstNameInput.value,
+                last_name: lastNameInput.value,
+                age: ageInput.value,
+                balance: balanceInput.value,
+            }
+            var requestOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                body: JSON.stringify(formdata)
+            };
+
+            const res = await fetch('http://localhost:3000/user/create', requestOptions)
+            .then(response => {
+                if (response.status === 201) {
+                    response.json().then(data => {
+                        const loginBtn = document.querySelector("label.login");
+                        loginBtn.click();
+                        const registerMsg = document.getElementById("registerMsg")
+                        registerMsg.innerHTML ="<p>Copia y guarda tus datos de acceso:</p> <ul><li>Número de cuenta: " + data.user.account_number + "</li><li> Contraseña: " + data.password + "</li></ul>";
+                    });
+                } else if (response.status === 401) {
+                    window.location.href = "/";
+                } else {
+                    alert('Error en el servidor');
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+    </script>
+    <script>
+        const loginText = document.querySelector(".title-text .login");
+        const loginForm = document.querySelector("form.login");
+        const loginBtn = document.querySelector("label.login");
+        const signupBtn = document.querySelector("label.signup");
+        const signupLink = document.querySelector("form .signup-link a");
+        signupBtn.onclick = (() => {
+            loginForm.style.marginLeft = "-50%";
+            loginText.style.marginLeft = "-50%";
+        });
+        loginBtn.onclick = (() => {
+            loginForm.style.marginLeft = "0%";
+            loginText.style.marginLeft = "0%";
+        });
+        signupLink.onclick = (() => {
+            signupBtn.click();
+            return false;
+        });
+    </script>
+</body>
+
+</html>
