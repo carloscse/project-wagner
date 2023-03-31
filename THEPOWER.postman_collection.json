@@ -1,0 +1,720 @@
+{
+	"info": {
+		"_postman_id": "1dc7e39c-c8d8-4917-b35c-b94522562ac6",
+		"name": "THEPOWER",
+		"description": "Septrion is the name of the backend of Hospedium. This API allows the system that makes the connection to retrieve all the information stored in the database and filter it. The API is divided in different sections in order to be clear about the methods that can be used in each part.\n\nIn order to be able to retrieve all the information, we need to provide a valid username and password as well as the API_URL.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13132965"
+	},
+	"item": [
+		{
+			"name": "USER",
+			"item": [
+				{
+					"name": "Get User List",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/user/list",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"user",
+								"list"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Add User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Carlos\",\n    \"last_name\": \"C\",\n    \"age\": 27,\n    \"balance\": 1000,\n    \"is_admin\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/user/create",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"user",
+								"create"
+							]
+						},
+						"description": "This method adds a new user to the database with all the parameters that we want to include."
+					},
+					"response": [
+						{
+							"name": "Add User",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"first_name\": \"Carlos\",\n    \"last_name\": \"Admin\",\n    \"age\": 27,\n    \"balance\": 2500,\n    \"is_admin\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/api/users",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"api",
+										"users"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\r\n    \"message\": \"User created successfully!\",\r\n    \"user\": {\r\n        \"first_name\": \"Carlos\",\r\n        \"last_name\": \"Admin\",\r\n        \"age\": 27,\r\n        \"balance\": 2500,\r\n        \"account_number\": 7390216541,\r\n        \"is_admin\": true\r\n    },\r\n    \"password\": \"DPp2jg1tcIrY58\"\r\n}"
+						}
+					]
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"User\",\n    \"last_name\": \"Admin\",\n    \"age\": 28,\n    \"balance\": 5000,\n    \"account_number\": 8968586451,\n    \"is_admin\": true,\n    \"connections\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/user/update/8968586451",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"user",
+								"update",
+								"8968586451"
+							]
+						},
+						"description": "This method updates the data of a User using his ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/user/delete/641d91258bc6ad9094fa9561",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"user",
+								"delete",
+								"641d91258bc6ad9094fa9561"
+							]
+						},
+						"description": "This method deletes a certain user from the database given his ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Current",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/api/users/me",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						},
+						"description": "The method getCurrentUser allows us to get the information from the user that is logged in at the moment by adding /me at the end of the URL."
+					},
+					"response": []
+				}
+			],
+			"description": "The User section includes the 4 CRUD methods, but also an additional method that get the data of the current user that is logged in."
+		},
+		{
+			"name": "CONNECTIONS",
+			"item": [
+				{
+					"name": "Get Connection List",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/connection/list",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"connection",
+								"list"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Connections User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/connection/user/8968586451",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"connection",
+								"user",
+								"8968586451"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Connection",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sender_id\": \"641eb6812018575143df3479\",\n    \"receiver_id\": \"64217664c99baf66617d700b\",\n    \"status\": \"Pending\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/connection/create",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"connection",
+								"create"
+							]
+						},
+						"description": "This method adds a new user to the database with all the parameters that we want to include."
+					},
+					"response": [
+						{
+							"name": "Add Connection",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"sender_id\": \"641eb6812018575143df3479\",\n    \"receiver_id\": \"64217664c99baf66617d700b\",\n    \"status\": \"Pending\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/api/users",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"api",
+										"users"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\r\n    \"message\": \"Connection created successfully!\",\r\n    \"connection\": {\r\n        \"sender_id\": \"641eb6812018575143df3479\",\r\n        \"receiver_id\": \"64217664c99baf66617d700b\",\r\n        \"status\": \"Pending\"\r\n    },\r\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Connection",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sender_id\": \"641eb6812018575143df3479\",\n    \"receiver_id\": \"6423047a91a8d95f98d21152\",\n    \"status\": \"Pending\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/connection/update/64231e4a1e076d59b3189ef0",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"connection",
+								"update",
+								"64231e4a1e076d59b3189ef0"
+							]
+						},
+						"description": "This method updates the data of a User using his ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Connection",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/connection/delete/64268c3037722e3143c40bb2",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"connection",
+								"delete",
+								"64268c3037722e3143c40bb2"
+							]
+						},
+						"description": "This method deletes a certain user from the database given his ID."
+					},
+					"response": []
+				}
+			],
+			"description": "The User section includes the 4 CRUD methods, but also an additional method that get the data of the current user that is logged in."
+		},
+		{
+			"name": "TRANSACTIONS",
+			"item": [
+				{
+					"name": "Get Transaction List",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/transaction/list",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"list"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transactions User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/transaction/user/7390216541",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"user",
+								"7390216541"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transactions Sender",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/transaction/sender/641eb6812018575143df3479",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"sender",
+								"641eb6812018575143df3479"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transactions Receiver",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/transaction/receiver/641eb6812018575143df3479",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"receiver",
+								"641eb6812018575143df3479"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transaction Commissions",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/transaction/commissions",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"commissions"
+							]
+						},
+						"description": "The system returns all the users in the platform. We can also request the data of a single user."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sender_id\": \"641eb6812018575143df3479\",\n    \"receiver_id\": \"64217664c99baf66617d700b\",\n    \"amount\": 500,\n    \"status\": \"Pending\",\n    \"is_undone\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/transaction/create",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"create"
+							]
+						},
+						"description": "This method adds a new user to the database with all the parameters that we want to include."
+					},
+					"response": [
+						{
+							"name": "Add Transaction",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"first_name\": \"Carlos\",\n    \"last_name\": \"Admin\",\n    \"age\": 27,\n    \"balance\": 2500,\n    \"is_admin\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/api/users",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"api",
+										"users"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\r\n    \"message\": \"User created successfully!\",\r\n    \"user\": {\r\n        \"first_name\": \"Carlos\",\r\n        \"last_name\": \"Admin\",\r\n        \"age\": 27,\r\n        \"balance\": 2500,\r\n        \"account_number\": 7390216541,\r\n        \"is_admin\": true\r\n    },\r\n    \"password\": \"DPp2jg1tcIrY58\"\r\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Transaction",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sender_id\": \"641eb6812018575143df3479\",\n    \"receiver_id\": \"64217664c99baf66617d700b\",\n    \"amount\": 500,\n    \"status\": \"Done\",\n    \"is_undone\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/transaction/update/64217b0532aaf86a2323c085",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"update",
+								"64217b0532aaf86a2323c085"
+							]
+						},
+						"description": "This method updates the data of a User using his ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Transaction",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/transaction/delete/642392f8a4055121d18126a2",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"transaction",
+								"delete",
+								"642392f8a4055121d18126a2"
+							]
+						},
+						"description": "This method deletes a certain user from the database given his ID."
+					},
+					"response": []
+				}
+			],
+			"description": "The User section includes the 4 CRUD methods, but also an additional method that get the data of the current user that is logged in."
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account_number\": 8968586451,\n    \"password\": \"96peiEDl91jD$p\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_URL}}/login",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"login"
+					]
+				},
+				"description": "This method adds a new user to the database with all the parameters that we want to include."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0MjY4ZGI1Y2JhNTRiNDQ2NTc1YWZiYiIsImFjY291bnRfbnVtYmVyIjo4OTY4NTg2NDUxLCJpYXQiOjE2ODAyNDk5MTQsImV4cCI6MTY4MDI1MDgxNH0.En19tUsEuNC8UdX6HGwJ-m5h-X-hGVDOKIVTqdOvVsw",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "USERNAME",
+			"value": "admin"
+		},
+		{
+			"key": "PASSWORD",
+			"value": "Admin1234!"
+		}
+	]
+}
