@@ -118,14 +118,14 @@
                             }
                         }
                         for (let i = 0; i < data.connections.length; i++) {
-                            if(data.connections[i].status == "Declined") {
                                 const declineConnectionBtn = document.getElementById('declineConnection' + data.connections[i]._id)
-                                declineConnectionBtn.addEventListener('click', declineConnection)
-                            } else if(data.connections[i].status == "Pending" && data.connections[i].receiver == localStorage.getItem('account_number')) {
-                                console.log(data.connections[i]._id)
+                                if(declineConnectionBtn != null){
+                                    declineConnectionBtn.addEventListener('click', declineConnection)
+                                }
                                 const acceptConnectionBtn = document.getElementById('acceptConnection' + data.connections[i]._id)
-                                acceptConnectionBtn.addEventListener('click', acceptConnection)
-                            }
+                                if(acceptConnectionBtn != null){
+                                    acceptConnectionBtn.addEventListener('click', acceptConnection)
+                                }
                         }
                     });
                 } else {
@@ -247,7 +247,7 @@
                                 // Comprobamos el tiempo transcurrido para ver si podemos cancelar la transacción
                                 var createdAt = new Date(data.transactions[i].createdAt);
                                 var millis = Date.now() - createdAt.getTime();
-                                if(millis < 60000 && data.transactions[i].is_undone == false) {
+                                if(millis < 60000 && data.transactions[i].is_undone == false && data.transactions[i].status !== "Undone") {
                                     text += "<td><input type='submit' class='btn btn-add' id='cancelTransaction" + data.transactions[i]._id + "' value='Cancel'></td></tr>";
                                 } else {
                                     text += "<td></td></tr>";
